@@ -114,29 +114,6 @@ function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path)
             # Script the object:
             $Object.Script($ScriptOptions) | Out-File -FilePath “$Folder\$ScriptFile.sql”
             "GO" | Out-File -FilePath “$Folder\$ScriptFile.sql” -Append
-<#
-            # If the object has indexes, add those to the same file:
-            if ($Object.Indexes -ne $null) {
-                foreach($Index in $Object.Indexes) {
-                    $Index.Script($ScriptOptions) | Out-File -FilePath “$Folder\$ScriptFile.sql” -Append
-                    "GO" | Out-File -FilePath “$Folder\$ScriptFile.sql” -Append
-                }
-            }
-
-            # If the object has foreign keys, add them to a separate file (to avoid dependency problems when creating the database)
-            if ($Object.ForeignKeys -ne $null) {
-                $FkFolder=$path+"\"+$Object.Schema+"\Foreign Keys"
-
-                # Create the FK folder if it doesn't exist:
-                Create-Folder $FkFolder
-
-                # Script all the foreign key constraints to that folder:
-                foreach($Fk in $Object.ForeignKeys) {
-                    $Fk.Script($ScriptOptions) | Out-File -FilePath ("$FkFolder\" + $Fk.Name + ".sql") | Out-Null
-                    "GO" | Out-File -FilePath ("$FkFolder\" + $Fk.Name + ".sql") -Append
-                }
-            }
-#>
         }
     }
 }
