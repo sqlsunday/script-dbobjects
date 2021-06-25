@@ -5,6 +5,8 @@
 # Usage: Script-DBObjects -Server "server\instance" -DatabaseName "db" -Path "c:\temp"
 #
 
+Import-Module SqlServer
+
 function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path) {
 
     # Check if a folder exists, and create it (including the whole path) if it doesn't.
@@ -41,38 +43,37 @@ function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path)
 
 
 
-    [System.Reflection.Assembly]::LoadWithPartialName(“Microsoft.SqlServer.SMO”) | Out-Null
-    $SMOserver = New-Object ("Microsoft.SqlServer.Management.Smo.Server") -argumentlist $server
+    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.SMO.Server") | Out-Null
+    $SMOserver = New-Object ("Microsoft.SqlServer.Management.SMO.Server") -argumentlist $Server
     $Database = $SMOserver.databases[$DatabaseName]
 
     $ScriptOptions = New-Object ("Microsoft.SqlServer.Management.Smo.ScriptingOptions")
    #$ScriptOptions.ContinueScriptingOnError = $true
     $ScriptOptions.ScriptOwner = $true
-   #$ScriptOptions.ToFileOnly = $true
-   #$ScriptOptions.AppendToFile = $true
+    $ScriptOptions.ToFileOnly = $true
+    $ScriptOptions.AppendToFile = $false
     $ScriptOptions.AnsiPadding = $true
-    $ScriptOptions.AppendToFile = $true
     $ScriptOptions.Bindings = $true
     $ScriptOptions.ChangeTracking = $true
     $ScriptOptions.DriAll = $true
-    $ScriptOptions.EnforceScriptingOptions = $true
+   #$ScriptOptions.EnforceScriptingOptions = $true
     $ScriptOptions.ExtendedProperties = $true
     $ScriptOptions.FullTextCatalogs = $true
     $ScriptOptions.FullTextIndexes = $true
     $ScriptOptions.FullTextStopLists = $true
     $ScriptOptions.IncludeDatabaseRoleMemberships = $true
     $ScriptOptions.IncludeFullTextCatalogRootPath = $true
-    $ScriptOptions.IncludeHeaders = $true
+    $ScriptOptions.IncludeHeaders = $false
     $ScriptOptions.Indexes = $true
     $ScriptOptions.LoginSid = $true
-    $ScriptOptions.Permissions = $true
+    $ScriptOptions.Permissions = $false
     $ScriptOptions.SchemaQualify = $true
     $ScriptOptions.SchemaQualifyForeignKeysReferences = $true
     $ScriptOptions.ScriptBatchTerminator = $true
     $ScriptOptions.ScriptDataCompression = $true
-    $ScriptOptions.ScriptOwner = $true
+    $ScriptOptions.ScriptOwner = $false
     $ScriptOptions.ScriptSchema = $true
-    $ScriptOptions.Statistics = $true
+    $ScriptOptions.Statistics = $false
     $ScriptOptions.Triggers = $true
     $ScriptOptions.XmlIndexes = $true
 
@@ -109,11 +110,12 @@ function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path)
             $ScriptFile = $Object.Name
 
             # Print
-            “$Folder\$ScriptFile.sql”
+            "$Folder\$ScriptFile.sql"
+
+            $ScriptOptions.FileName="$Folder\$ScriptFile.sql"
 
             # Script the object:
-            $Object.Script($ScriptOptions) | Out-File -FilePath “$Folder\$ScriptFile.sql”
-            "GO" | Out-File -FilePath “$Folder\$ScriptFile.sql” -Append
+            $Object.Script($ScriptOptions)
         }
     }
 }
