@@ -74,7 +74,7 @@ function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path)
     $ScriptOptions.ScriptOwner = $false
     $ScriptOptions.ScriptSchema = $true
     $ScriptOptions.Statistics = $false
-    $ScriptOptions.Triggers = $true
+    $ScriptOptions.Triggers = $false
     $ScriptOptions.XmlIndexes = $true
 
     # These are the objects we want to script:
@@ -84,7 +84,6 @@ function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path)
     $Objects += $Database.Sequences
     $Objects += $Database.Tables
     $Objects += $Database.Views
-    $Objects += $Database.Triggers
     $Objects += $Database.UserDefinedFunctions
     $Objects += $Database.UserDefinedTypes
     $Objects += $Database.UserDefinedTableTypes
@@ -108,14 +107,26 @@ function Script-DBObjects([string]$Server, [string]$DatabaseName, [string]$Path)
 
             # File name:
             $ScriptFile = $Object.Name
-
-            # Print
             "$Folder\$ScriptFile.sql"
-
             $ScriptOptions.FileName="$Folder\$ScriptFile.sql"
 
             # Script the object:
             $Object.Script($ScriptOptions)
+
+            # Separate the triggers from the regular tables/views:
+            foreach($trigger in $Object.Triggers) {
+                # Folder structure for triggers:
+                $Folder=$path+"\"+$Object.Schema+"\Triggers"
+                Create-Folder $Folder
+
+                # File name:
+                $ScriptFile = $trigger.Name
+                "$Folder\$ScriptFile.sql"
+                $ScriptOptions.FileName="$Folder\$ScriptFile.sql"
+
+                # Out you go:
+                $trigger.Script($ScriptOptions)
+            }
         }
     }
 }
